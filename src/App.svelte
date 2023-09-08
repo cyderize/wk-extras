@@ -55,7 +55,7 @@
   <details
     class="config-box"
     on:toggle={() => updateConfig()}
-    open={$apiKey.length === 0}
+    open={!$apiKey}
   >
     <summary>Configuration</summary>
     <div class="config">
