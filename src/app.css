@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP&family=Noto+Sans:wght@400;700&display=swap");
 
 :root {
   --text-color: #000;
@@ -10,6 +10,7 @@
 html,
 body {
   font-family: "Noto Sans", sans-serif;
+  font-family: "Noto Sans JP", sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
   margin: 0;
