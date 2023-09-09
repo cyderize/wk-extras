@@ -332,6 +332,7 @@
     box-shadow: -1rem -1rem 2rem #00000042, 1rem -1rem 2rem #00000042,
       -1rem 1rem 2rem #00000042, 1rem 1rem 2rem #00000042;
     position: relative;
+    pointer-events: auto;
   }
 
   .modal .window .exit {
