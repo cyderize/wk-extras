@@ -311,12 +311,17 @@
     flex-direction: column;
     align-items: stretch;
   }
+
   .modal .middle {
     padding: 1rem;
   }
 
   .modal .spacer {
     flex: 0 1 1rem;
+  }
+
+  .modal .middle, .modal .spacer {
+    pointer-events: none;
   }
 
   .modal .window {
