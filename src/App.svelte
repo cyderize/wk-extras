@@ -15,7 +15,7 @@
   $: radicals = asgs
     .filter((asg) => asg.subject.object === "radical")
     .map((r) => {
-      if (r.subject.data.characters === null) {
+      if (!r.subject.data.characters) {
         return {
           ...r,
           image: (async () => {
@@ -25,10 +25,14 @@
                 img.metadata.inline_styles === false
             );
             if (!img) {
-              return "";
+              const first = r.subject.data.character_images[0];
+              if (first) {
+                return { url: first.url };
+              }
+              return {};
             }
             const response = await fetch(img.url);
-            return await response.text();
+            return { html: await response.text() };
           })(),
         };
       }
@@ -52,11 +56,7 @@
 </script>
 
 <main>
-  <details
-    class="config-box"
-    on:toggle={() => updateConfig()}
-    open={!$apiKey}
-  >
+  <details class="config-box" on:toggle={() => updateConfig()} open={!$apiKey}>
     <summary>Configuration</summary>
     <div class="config">
       <label class="field">
@@ -91,9 +91,13 @@
               {radical.subject.data.characters}
             </div>
           {:else}
-            {#await radical.image then svg}
+            {#await radical.image then img}
               <div class="character-image">
-                {@html svg}
+                {#if img.html}
+                  {@html img.html}
+                {:else if img.url}
+                  <img src={img.url} alt={radical.subject.data.meanings[0]} />
+                {/if}
               </div>
             {/await}
           {/if}
@@ -157,16 +161,25 @@
                   {selected.subject.data.characters}
                 </div>
               {:else}
-                {#await selected.image then svg}
+                {#await selected.image then img}
                   <div class="character-image">
-                    {@html svg}
+                    {#if img.html}
+                      {@html img.html}
+                    {:else if img.url}
+                      <img
+                        src={img.url}
+                        alt={selected.subject.data.meanings[0]}
+                      />
+                    {/if}
                   </div>
                 {/await}
               {/if}
             </div>
           </div>
           <div class="section">
-            <a href={selected.subject.data.document_url} target="_blank">View on WaniKani</a>
+            <a href={selected.subject.data.document_url} target="_blank"
+              >View on WaniKani</a
+            >
           </div>
           <div class="section">
             <strong>Meaning: </strong>
@@ -320,7 +333,8 @@
     flex: 0 1 1rem;
   }
 
-  .modal .middle, .modal .spacer {
+  .modal .middle,
+  .modal .spacer {
     pointer-events: none;
   }
 
@@ -373,6 +387,18 @@
     stroke: currentColor;
     stroke-width: 3rem;
     pointer-events: none;
+  }
+
+  .character-image img {
+    width: 2.5rem;
+    height: 2.5rem;
+    pointer-events: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .character-image img {
+      filter: invert(1);
+    }
   }
 
   .modal .section:not(:last-child) {
