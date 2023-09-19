@@ -2,10 +2,10 @@
   import { subjects, assignments, apiKey, period } from "./lib/db";
   import { fade, fly } from "svelte/transition";
 
+  let configElement;
   let apiKeyInput = $apiKey;
   let periodInput = $period;
   let selected = null;
-
   $: asgs = ($assignments || [])
     .map((asg) => ({
       timestamp: new Date(asg.available_at).valueOf(),
@@ -45,18 +45,26 @@
       asg.subject.object === "kana_vocabulary"
   );
 
-  function updateConfig() {
+  function updateConfig(close) {
     if ($apiKey !== apiKeyInput) {
       $apiKey = apiKeyInput;
     }
     if ($period !== periodInput) {
       $period = periodInput;
     }
+    if (close && configElement) {
+      configElement.open = false;
+    }
   }
 </script>
 
 <main>
-  <details class="config-box" on:toggle={() => updateConfig()} open={!$apiKey}>
+  <details
+    bind:this={configElement}
+    class="config-box"
+    on:toggle={() => updateConfig(false)}
+    open={!$apiKey}
+  >
     <summary>Configuration</summary>
     <div class="config">
       <label class="field">
@@ -74,7 +82,7 @@
         />
       </label>
       <div class="field">
-        <button on:click={updateConfig}>Save</button>
+        <button on:click={() => updateConfig(true)}>Save</button>
       </div>
     </div>
   </details>
@@ -201,6 +209,17 @@
       </div>
     </div>
     <div class="spacer" />
+  </div>
+{/if}
+
+{#if $apiKey && (Object.keys($subjects).length === 0 || !$assignments)}
+  <div class="loader">
+    <div class="lds-ring">
+      <div />
+      <div />
+      <div />
+      <div />
+    </div>
   </div>
 {/if}
 
@@ -420,5 +439,9 @@
       flex: 1 1 auto;
       pointer-events: none;
     }
+  }
+  .loader {
+    text-align: center;
+    padding: 2rem;
   }
 </style>

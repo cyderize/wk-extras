@@ -37,6 +37,9 @@ const setObject = async (key, value) => {
   });
 };
 
+let subjectsSequenceID = 0;
+let assignmentsSequenceID = 0;
+
 const apiKeyStore = writable(localStorage.getItem("wk-extras.apiKey"));
 const periodStore = writable(
   JSON.parse(localStorage.getItem("wk-extras.period") || "3")
@@ -49,6 +52,8 @@ const getSubjects = async (reset) => {
     if (!key) {
       return;
     }
+    subjectsSequenceID++;
+    const sequenceID = subjectsSequenceID;
     const headers = new Headers({
       "Wanikani-Revision": "20170710",
       Authorization: `Bearer ${key}`,
@@ -60,7 +65,7 @@ const getSubjects = async (reset) => {
       url += `?updated_after=${updated}`;
       result = await getObject("subjects");
     }
-    while (url) {
+    while (url && subjectsSequenceID === sequenceID) {
       const response = await fetch(url, {
         headers,
       });
@@ -73,7 +78,9 @@ const getSubjects = async (reset) => {
         updated = json.data_updated_at;
       }
     }
-
+    if (subjectsSequenceID !== sequenceID) {
+      return;
+    }
     localStorage.setItem("wk-extras.subjectsUpdated", updated);
     setObject("subjects", result);
     subjectsStore.set(result);
@@ -110,6 +117,8 @@ export const assignments = derived(
         if (!$apiKey || !$period) {
           return;
         }
+        assignmentsSequenceID++;
+        const sequenceID = assignmentsSequenceID;
         const headers = new Headers({
           "Wanikani-Revision": "20170710",
           Authorization: `Bearer ${$apiKey}`,
@@ -118,13 +127,16 @@ export const assignments = derived(
         end.setDate(end.getDate() + $period);
         let url = `https://api.wanikani.com/v2/assignments?available_before=${end.toISOString()}`;
         const result = [];
-        while (url) {
+        while (url && sequenceID === assignmentsSequenceID) {
           const response = await fetch(url, {
             headers,
           });
           const json = await response.json();
           url = json.pages.next_url;
           result.push(...json.data.map((asg) => asg.data));
+        }
+        if (sequenceID !== assignmentsSequenceID) {
+          return;
         }
         set(result);
       } catch (e) {
