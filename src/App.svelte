@@ -25,9 +25,12 @@
                 img.metadata.inline_styles === false
             );
             if (!img) {
-              const first = r.subject.data.character_images[0];
-              if (first) {
-                return { url: first.url };
+              const fallback =
+                r.subject.data.character_images.find(
+                  (img) => img.content_type === "image/svg+xml"
+                ) || r.subject.data.character_images[0];
+              if (fallback) {
+                return { url: fallback.url };
               }
               return {};
             }
@@ -104,7 +107,10 @@
                 {#if img.html}
                   {@html img.html}
                 {:else if img.url}
-                  <img src={img.url} alt={radical.subject.data.meanings[0]} />
+                  <img
+                    src={img.url}
+                    alt={radical.subject.data.meanings[0].meaning}
+                  />
                 {/if}
               </div>
             {/await}
@@ -176,7 +182,7 @@
                     {:else if img.url}
                       <img
                         src={img.url}
-                        alt={selected.subject.data.meanings[0]}
+                        alt={selected.subject.data.meanings[0].meaning}
                       />
                     {/if}
                   </div>
