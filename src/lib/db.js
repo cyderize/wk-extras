@@ -62,8 +62,11 @@ const getSubjects = async (reset) => {
     let updated = localStorage.getItem("wk-extras.subjectsUpdated");
     let result = {};
     if (!reset && updated) {
-      url += `?updated_after=${updated}`;
-      result = await getObject("subjects");
+      const cached = await getObject("subjects")
+      if (cached) {
+        url += `?updated_after=${updated}`;
+        result = cached;
+      }
     }
     while (url && subjectsSequenceID === sequenceID) {
       const response = await fetch(url, {
