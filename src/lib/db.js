@@ -62,7 +62,7 @@ const getSubjects = async (reset) => {
     let updated = localStorage.getItem("wk-extras.subjectsUpdated");
     let result = {};
     if (!reset && updated) {
-      const cached = await getObject("subjects")
+      const cached = await getObject("subjects");
       if (cached) {
         url += `?updated_after=${updated}`;
         result = cached;
@@ -148,3 +148,135 @@ export const assignments = derived(
     })();
   }
 );
+
+export const radicals = derived(
+  [assignments, subjects],
+  ([$assignments, $subjects]) =>
+    $assignments &&
+    $subjects &&
+    $assignments
+      .map((asg) => {
+        const subject = $subjects[asg.subject_id];
+        if (!subject || subject.object !== "radical") {
+          return null;
+        }
+        const data = {
+          type: "radical",
+          timestamp: new Date(asg.available_at).valueOf(),
+          level: subject.data.level,
+          characters: subject.data.characters,
+          meanings: subject.data.meanings,
+          url: subject.data.document_url,
+        };
+        if (!data.characters) {
+          data.image = (async () => {
+            const img = subject.data.character_images.find(
+              (img) =>
+                img.content_type === "image/svg+xml" &&
+                img.metadata.inline_styles === false
+            );
+            if (!img) {
+              const fallback =
+                subject.data.character_images.find(
+                  (img) => img.content_type === "image/svg+xml"
+                ) || subject.data.character_images[0];
+              if (fallback) {
+                return { url: fallback.url };
+              }
+              return {};
+            }
+            const response = await fetch(img.url);
+            return { html: await response.text() };
+          })();
+        }
+        return data;
+      })
+      .filter((x) => x !== null)
+      .sort((a, b) => a.timestamp - b.timestamp)
+);
+
+export const kanji = derived(
+  [assignments, subjects],
+  ([$assignments, $subjects]) =>
+    $assignments &&
+    $subjects &&
+    $assignments
+      .map((asg) => {
+        const subject = $subjects[asg.subject_id];
+        if (!subject || subject.object !== "kanji") {
+          return null;
+        }
+        return {
+          type: "kanji",
+          timestamp: new Date(asg.available_at).valueOf(),
+          level: subject.data.level,
+          characters: subject.data.characters,
+          meanings: subject.data.meanings,
+          readings: subject.data.readings,
+          url: subject.data.document_url,
+        };
+      })
+      .filter((x) => x !== null)
+      .sort((a, b) => a.timestamp - b.timestamp)
+);
+
+export const vocab = derived(
+  [assignments, subjects],
+  ([$assignments, $subjects]) =>
+    $assignments &&
+    $subjects &&
+    $assignments
+      .map((asg) => {
+        const subject = $subjects[asg.subject_id];
+        if (
+          !subject ||
+          (subject.object !== "vocabulary" &&
+            subject.object !== "kana_vocabulary")
+        ) {
+          return null;
+        }
+        return {
+          type: "vocab",
+          timestamp: new Date(asg.available_at).valueOf(),
+          level: subject.data.level,
+          characters: subject.data.characters,
+          meanings: subject.data.meanings,
+          readings: subject.data.readings,
+          url: subject.data.document_url,
+        };
+      })
+      .filter((x) => x !== null)
+      .sort((a, b) => a.timestamp - b.timestamp)
+);
+
+export const corpus = derived(subjects, ($subjects) => {
+  if (!$subjects) {
+    return null;
+  }
+  const objectMap = {
+    radical: "radical",
+    kanji: "kanji",
+    vocabulary: "vocab",
+    kana_vocabulary: "vocab",
+  };
+  const result = { radical: {}, kanji: {}, vocab: {} };
+  for (const k in $subjects) {
+    const type = $subjects[k].object;
+    const data = $subjects[k].data;
+    const level = data.level;
+    if (!result.radical[level]) {
+      result.radical[level] = { meanings: [] };
+      result.kanji[level] = { meanings: [], readings: [] };
+      result.vocab[level] = { meanings: [], readings: [] };
+    }
+    result[objectMap[type]][level].meanings.push(
+      ...data.meanings.filter((x) => x.accepted_answer).map((x) => x.meaning)
+    );
+    if (data.readings) {
+      result[objectMap[type]][level].readings.push(
+        ...data.readings.filter((x) => x.accepted_answer).map((x) => x.reading)
+      );
+    }
+  }
+  return result;
+});

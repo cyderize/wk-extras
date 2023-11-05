@@ -5,6 +5,15 @@
   --background-color: #fff;
   --link-color: rgb(18, 80, 196);
   --link-hover-color: rgb(17, 93, 235);
+  --primary: rgb(0, 153, 255);
+  --primary-hover: rgb(11, 140, 226);
+  --primary-active: rgb(66, 179, 255);
+  --button-background: #fff;
+  --button-background-hover: #dff2ff;
+  --button-background-active: #b1e0ff;
+  --disabled: rgba(226, 226, 226, 0.384);
+  --disabled-text: rgba(0, 0, 0, 0.164);
+  --border-color: #ccc;
 }
 
 html,
@@ -44,6 +53,12 @@ a:hover {
     --background-color: #222;
     --link-color: rgb(18, 80, 196);
     --link-hover-color: rgb(17, 93, 235);
+    --button-background: #283338;
+    --button-background-hover: #23343d;
+    --button-background-active: #24465e;
+    --disabled: rgba(149, 194, 224, 0.384);
+    --disabled-text: rgba(255, 255, 255, 0.521);
+    --border-color: #181818;
   }
 }
 
@@ -52,7 +67,6 @@ a:hover {
     padding: 0;
   }
 }
-
 
 .lds-ring {
   display: inline-block;
@@ -88,4 +102,57 @@ a:hover {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.button {
+  border: solid 1px var(--border-color);
+  background-color: var(--button-background);
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: var(--button-background-hover);
+}
+
+.button:active {
+  background-color: var(--button-background-active);
+}
+
+.button.primary {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+.button.primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.button.primary:active {
+  background-color: var(--primary-active);
+}
+
+.button:disabled {
+  background-color: var(--disabled) !important;
+  cursor: not-allowed;
+  color: var(--disabled-text);
+}
+
+.exit {
+  position: absolute;
+  top: 0rem;
+  right: 0rem;
+  width: 3rem;
+  height: 3rem;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.exit:hover {
+  opacity: 1;
 }
